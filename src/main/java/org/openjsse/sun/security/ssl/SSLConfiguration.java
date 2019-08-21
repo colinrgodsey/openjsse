@@ -63,6 +63,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SNIMatcher;
@@ -106,6 +107,8 @@ final class SSLConfiguration implements Cloneable {
 
     boolean                     noSniExtension;
     boolean                     noSniMatcher;
+
+    Map<String, Object>         quicTransParams;
 
     // To switch off the extended_master_secret extension.
     static final boolean useExtendedMasterSecret;
@@ -175,6 +178,8 @@ final class SSLConfiguration implements Cloneable {
         this.handshakeListeners = null;
         this.noSniExtension = false;
         this.noSniMatcher = false;
+
+        this.quicTransParams = new HashMap<>();
     }
 
     SSLParameters getSSLParameters() {
@@ -214,6 +219,8 @@ final class SSLConfiguration implements Cloneable {
         params.setUseCipherSuitesOrder(this.preferLocalCipherSuites);
         params.setEnableRetransmissions(this.enableRetransmissions);
         params.setMaximumPacketSize(this.maximumPacketSize);
+
+        params.getQuicTransParams().putAll(quicTransParams);
 
         return params;
     }
@@ -275,6 +282,7 @@ final class SSLConfiguration implements Cloneable {
 
             this.enableRetransmissions = ((org.openjsse.javax.net.ssl.SSLParameters)params).getEnableRetransmissions();
             this.maximumPacketSize = ((org.openjsse.javax.net.ssl.SSLParameters)params).getMaximumPacketSize();
+            this.quicTransParams.putAll(((org.openjsse.javax.net.ssl.SSLParameters) params).getQuicTransParams());
         }
         this.preferLocalCipherSuites = params.getUseCipherSuitesOrder();
     }
