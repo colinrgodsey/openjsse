@@ -817,6 +817,9 @@ final class Finished {
 
                 // update the context for the following key derivation
                 shc.handshakeKeyDerivation = secretKD;
+
+                assert shc.handshakeSession.isValid();
+                shc.handshakeSession.putValue("tls13_master_secret", masterSecret);
             } catch (GeneralSecurityException gse) {
                 throw shc.conContext.fatal(Alert.INTERNAL_ERROR,
                         "Failure to derive application secrets", gse);
@@ -955,6 +958,9 @@ final class Finished {
                 chc.baseReadSecret = readSecret;
                 chc.conContext.inputRecord.changeReadCiphers(readCipher);
 
+                assert chc.handshakeSession.isValid();
+                chc.handshakeSession.putValue("tls13_master_secret", masterSecret);
+
                 // update the context for the following key derivation
                 chc.handshakeKeyDerivation = secretKD;
             } catch (GeneralSecurityException gse) {
@@ -1065,6 +1071,8 @@ final class Finished {
                 "TlsResumptionMasterSecret", null);
                 shc.handshakeSession.setResumptionMasterSecret(
                         resumptionMasterSecret);
+
+                QUICTransParamsExtension.copyTransParamsTo(shc, shc.handshakeSession);
             } catch (GeneralSecurityException gse) {
                 throw shc.conContext.fatal(Alert.INTERNAL_ERROR,
                         "Failure to derive application secrets", gse);
@@ -1081,8 +1089,6 @@ final class Finished {
             if (!shc.sslContext.isDTLS()) {
                 shc.conContext.finishHandshake();
             }
-
-            QUICTransParamsExtension.copyTransParamsTo(shc, shc.conContext.conSession);
 
             //
             // produce
