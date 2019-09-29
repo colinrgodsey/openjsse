@@ -51,6 +51,7 @@
 
 package org.openjsse.sun.security.ssl;
 
+import java.nio.ByteBuffer;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.AlgorithmConstraints;
@@ -63,7 +64,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SNIMatcher;
@@ -108,7 +108,7 @@ final class SSLConfiguration implements Cloneable {
     boolean                     noSniExtension;
     boolean                     noSniMatcher;
 
-    Map<String, Object>         quicTransParams;
+    ByteBuffer                  quicTransParams;
 
     // To switch off the extended_master_secret extension.
     static final boolean useExtendedMasterSecret;
@@ -179,7 +179,7 @@ final class SSLConfiguration implements Cloneable {
         this.noSniExtension = false;
         this.noSniMatcher = false;
 
-        this.quicTransParams = new HashMap<>();
+        this.quicTransParams = null;
     }
 
     SSLParameters getSSLParameters() {
@@ -219,8 +219,7 @@ final class SSLConfiguration implements Cloneable {
         params.setUseCipherSuitesOrder(this.preferLocalCipherSuites);
         params.setEnableRetransmissions(this.enableRetransmissions);
         params.setMaximumPacketSize(this.maximumPacketSize);
-
-        params.getQuicTransParams().putAll(quicTransParams);
+        params.setQUICTransParams(this.quicTransParams);
 
         return params;
     }
@@ -282,9 +281,7 @@ final class SSLConfiguration implements Cloneable {
 
             this.enableRetransmissions = ((org.openjsse.javax.net.ssl.SSLParameters)params).getEnableRetransmissions();
             this.maximumPacketSize = ((org.openjsse.javax.net.ssl.SSLParameters)params).getMaximumPacketSize();
-
-            this.quicTransParams.clear();
-            this.quicTransParams.putAll(((org.openjsse.javax.net.ssl.SSLParameters) params).getQuicTransParams());
+            this.quicTransParams = (((org.openjsse.javax.net.ssl.SSLParameters)params).getQUICTransParams());
         }
         this.preferLocalCipherSuites = params.getUseCipherSuitesOrder();
     }
